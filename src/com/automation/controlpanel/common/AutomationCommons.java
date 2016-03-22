@@ -127,6 +127,7 @@ public class AutomationCommons {
 		
 		JSONObject device = (JSONObject) deviceObjects.get(deviceString);
 		
+		pairs.put("STARTER", (String)device.get("STARTER"));
 		pairs.put("PLATFORM", (String)device.get("PLATFORM"));
 		pairs.put("DEVICE", (String)device.get("DEVICE"));
 		pairs.put("OS_VERSION", (String)device.get("OS_VERSION"));
