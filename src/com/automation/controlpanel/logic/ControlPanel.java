@@ -3,8 +3,6 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,8 +19,6 @@ import javax.swing.text.BadLocationException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.automation.controlpanel.common.*;
 import javax.swing.border.BevelBorder;
@@ -35,8 +31,6 @@ import javax.swing.JTextField;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.JTable;
 
 public class ControlPanel extends JFrame {
 
@@ -46,10 +40,6 @@ public class ControlPanel extends JFrame {
 	JComboBox comboBox_test;
 	
 	final static public String path = "/Users/ateplyakov/Automation/Control/";
-	private JLabel lblChooseParameter;
-	private JComboBox comboBox_config;
-	private JLabel lblNewLabel;
-	private JTextField textField_value;
 	private JLabel lblNewLabel_1;
 	private JComboBox comboBox_device_from;
 	private JLabel lblNewLabel_2;
@@ -69,6 +59,9 @@ public class ControlPanel extends JFrame {
 	private JButton btnDeleteTest;
 	private JButton btnRefresh;
 	private JButton btnUpdateResultTable;
+	
+	public boolean configurationViewIsCurrent = false;
+	private JButton btnTestData;
 
 	/**
 	 * Launch the application.
@@ -147,59 +140,10 @@ public class ControlPanel extends JFrame {
 		});
 		btnNewButton.setBounds(840, 16, 110, 27);
 		contentPane.add(btnNewButton);
-		
-		
-		
-		lblChooseParameter = new JLabel("Choose parameter...");
-		lblChooseParameter.setBounds(252, 148, 132, 16);
-		contentPane.add(lblChooseParameter);
-		
-		textField_value = new JTextField();
-		//textField_value.setText(pairs.get(comboBox_config.getSelectedItem().toString()));
-		textField_value.setBounds(434, 162, 387, 26);
-		contentPane.add(textField_value);
-		textField_value.setColumns(10);
-		
-		comboBox_config = new JComboBox();
-		comboBox_config.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				parameterChanged();
-			}
-		});
 		HashMap<String, String> pairs = AutomationCommons.getParameterValuePairs(this.jObj);
 		List<String> hmParameter = new ArrayList<String>(pairs.keySet());
 		hmParameter.sort(null);
-		for(int i = 0; i <= hmParameter.size() - 1; i++)
-			comboBox_config.addItem(hmParameter.get(i));
-		comboBox_config.setBounds(6, 163, 416, 27);
-		contentPane.add(comboBox_config);
-		
-		lblNewLabel = new JLabel("and set value");
-		lblNewLabel.setBounds(450, 147, 97, 16);
-		contentPane.add(lblNewLabel);
-		
-		
-		
-		JButton btnNewButton_1 = new JButton("Set value");
-		btnNewButton_1.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
 				
-				try {
-					changeValueButtonPressed();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (BadLocationException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-		});
-		btnNewButton_1.setBounds(833, 159, 117, 29);
-		contentPane.add(btnNewButton_1);
-		
 		lblNewLabel_1 = new JLabel("Move all test from this device to...");
 		lblNewLabel_1.setBounds(183, 76, 228, 16);
 		contentPane.add(lblNewLabel_1);
@@ -236,21 +180,21 @@ public class ControlPanel extends JFrame {
 		contentPane.add(btnNewButton_2);
 		
 		lblNewLabel_3 = new JLabel("Add new test with name...");
-		lblNewLabel_3.setBounds(197, 217, 202, 16);
+		lblNewLabel_3.setBounds(197, 136, 202, 16);
 		contentPane.add(lblNewLabel_3);
 		
 		lblToThisDevice = new JLabel("to this device");
-		lblToThisDevice.setBounds(448, 217, 99, 16);
+		lblToThisDevice.setBounds(448, 136, 99, 16);
 		contentPane.add(lblToThisDevice);
 		
 		comboBox_device_to_add_test = new JComboBox();
 		for(int i = 0; i <= devices.length - 1; i++)
 			comboBox_device_to_add_test.addItem(devices[i]);
-		comboBox_device_to_add_test.setBounds(434, 232, 387, 27);
+		comboBox_device_to_add_test.setBounds(434, 152, 387, 27);
 		contentPane.add(comboBox_device_to_add_test);
 		
 		textField_test_name = new JTextField();
-		textField_test_name.setBounds(6, 231, 416, 26);
+		textField_test_name.setBounds(6, 151, 416, 26);
 		contentPane.add(textField_test_name);
 		
 		
@@ -266,12 +210,12 @@ public class ControlPanel extends JFrame {
 				}
 			}
 		});
-		btnNewButton_3.setBounds(833, 212, 117, 29);
+		btnNewButton_3.setBounds(833, 136, 117, 29);
 		contentPane.add(btnNewButton_3);
 		
 				
 		scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(6, 300, 938, 260);
+		scrollPane_1.setBounds(6, 218, 938, 260);
 		contentPane.add(scrollPane_1);
 		
 	
@@ -279,6 +223,22 @@ public class ControlPanel extends JFrame {
 		String header[] = new String[] { "Parameter", "Value"};
 		dtm.setColumnIdentifiers(header);
 		table = new RowTable(dtm);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				if(configurationViewIsCurrent)
+				{
+					btnRefresh.setBackground(Color.RED);
+					//btnRefresh.setForeground(Color.RED);
+					btnRefresh.setOpaque(true);
+					btnRefresh.setBorderPainted(false);
+					btnRefresh.setText("Save");
+				}
+				
+			}
+		});
+		
 		scrollPane_1.setViewportView(table);
 		
 		btnNewButton_4 = new JButton("Show tests and devices");
@@ -286,6 +246,7 @@ public class ControlPanel extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+					configurationViewIsCurrent = false;
 					refreshTextViewWithTestDevicePairs();
 				} catch (BadLocationException e1) {
 					// TODO Auto-generated catch block
@@ -293,7 +254,7 @@ public class ControlPanel extends JFrame {
 				}
 			}
 		});
-		btnNewButton_4.setBounds(6, 578, 202, 29);
+		btnNewButton_4.setBounds(16, 490, 202, 29);
 		contentPane.add(btnNewButton_4);
 		
 		btnNewButton_5 = new JButton("Show configuration");
@@ -301,6 +262,7 @@ public class ControlPanel extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				try {
+					configurationViewIsCurrent = true;
 					refreshTextViewWithConfiguration();
 				} catch (BadLocationException e1) {
 					// TODO Auto-generated catch block
@@ -308,7 +270,7 @@ public class ControlPanel extends JFrame {
 				}
 			}
 		});
-		btnNewButton_5.setBounds(221, 578, 178, 29);
+		btnNewButton_5.setBounds(221, 490, 178, 29);
 		contentPane.add(btnNewButton_5);
 		
 		btnNewButton_6 = new JButton("Add, Edit, View Device");
@@ -319,7 +281,7 @@ public class ControlPanel extends JFrame {
 				dcevFrame.setVisible(true);
 			}
 		});
-		btnNewButton_6.setBounds(406, 578, 184, 29);
+		btnNewButton_6.setBounds(410, 490, 184, 29);
 		contentPane.add(btnNewButton_6);
 		
 		btnDeleteTest = new JButton("Delete test");
@@ -334,7 +296,7 @@ public class ControlPanel extends JFrame {
 				}
 			}
 		});
-		btnDeleteTest.setBounds(833, 253, 117, 29);
+		btnDeleteTest.setBounds(833, 177, 117, 29);
 		contentPane.add(btnDeleteTest);
 		
 		btnRefresh = new JButton("Refresh");
@@ -344,7 +306,7 @@ public class ControlPanel extends JFrame {
 				buttonRefresh();
 			}
 		});
-		btnRefresh.setBounds(601, 578, 117, 29);
+		btnRefresh.setBounds(606, 490, 117, 29);
 		contentPane.add(btnRefresh);
 		
 		btnUpdateResultTable = new JButton("Update Result Table");
@@ -355,8 +317,19 @@ public class ControlPanel extends JFrame {
 				dcevFrame.setVisible(true);
 			}
 		});
-		btnUpdateResultTable.setBounds(724, 578, 159, 29);
+		btnUpdateResultTable.setBounds(725, 490, 159, 29);
 		contentPane.add(btnUpdateResultTable);
+		
+		btnTestData = new JButton("Test data");
+		btnTestData.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				TestData TD = new TestData();
+				TD.setVisible(true);
+			}
+		});
+		btnTestData.setBounds(26, 531, 192, 29);
+		contentPane.add(btnTestData);
 		refreshTextViewWithTestDevicePairs();
 		
 				
@@ -386,23 +359,7 @@ public class ControlPanel extends JFrame {
 		
 	}
 	
-	public void parameterChanged()
-	{
-		HashMap<String, String> pairs = AutomationCommons.getParameterValuePairs(this.jObj);
-		textField_value.setText(pairs.get(comboBox_config.getSelectedItem().toString()));
-	}
-	
-	public void changeValueButtonPressed() throws IOException, BadLocationException
-	{
-		String parameter = comboBox_config.getSelectedItem().toString();
-		String value = textField_value.getText();
 		
-		changeValueInConfiguration(parameter, value);
-		AutomationCommons.saveJSONObjectToFile(this.jObj, this.path);
-		AutomationCommons.getJSONObject(this.path);
-		refreshTextViewWithConfiguration();
-	}
-	
 	public void refreshTextViewWithTestDevicePairs() throws BadLocationException
 	{
 		HashMap<String, String> pairs = AutomationCommons.getTestsDevicesPairs(this.jObj);
@@ -456,6 +413,40 @@ public class ControlPanel extends JFrame {
 	
 	private void buttonRefresh()
 	{
+		if(btnRefresh.getText().equals("Save"))
+		{
+			btnRefresh.setOpaque(false);
+			btnRefresh.setBorderPainted(true);
+			btnRefresh.setText("Refresh");
+			
+			JSONObject device = (JSONObject) jObj.get("configuration");
+			
+			int rowsNumber =  dtm.getRowCount();
+			String value = "";
+			String key = "";
+			
+			for(int i = 0; i <= rowsNumber - 1; i++)
+			{
+				key = dtm.getValueAt(i, 0).toString();
+				value = dtm.getValueAt(i, 1).toString();
+
+				device.put(key, value);
+				
+				key = "";
+				value = "";
+			}
+			
+			jObj.put("configuration", device);
+			
+			try {
+				AutomationCommons.saveJSONObjectToFile(jObj, ControlPanel.path);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		
 		AutomationCommons.getJSONObject(this.path);
 		try {
 			refreshTextViewWithTestDevicePairs();

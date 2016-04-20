@@ -95,8 +95,18 @@ public class DeviceCreateEditView extends JFrame {
 				buttonSaveChanges();
 			}
 		});
-		btnSaveChanges.setBounds(403, 324, 117, 29);
+		btnSaveChanges.setBounds(283, 325, 117, 29);
 		contentPane.add(btnSaveChanges);
+		
+		JButton btnAddDevice = new JButton("Add device");
+		btnAddDevice.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				buttonAddNewDevice();
+			}
+		});
+		btnAddDevice.setBounds(420, 325, 117, 29);
+		contentPane.add(btnAddDevice);
 		
 
 	}
@@ -139,6 +149,45 @@ public class DeviceCreateEditView extends JFrame {
 		}
 		
 		cmbBoxChanged();
+	}
+	
+	private void buttonAddNewDevice()
+	{
+		String[] devices = AutomationCommons.getDevicesAndComments(jObj);
+		int lastDeviceNumber = devices.length;
+		String newDeviceName = "device" + String.valueOf(lastDeviceNumber + 1);
+		
+		int rowsNumber =  dtm.getRowCount();
+		String value = "";
+		String key = "";
+		
+		JSONObject device = new JSONObject();
+		
+		for(int i = 0; i <= rowsNumber - 1; i++)
+		{
+			key = dtm.getValueAt(i, 0).toString();
+			value = dtm.getValueAt(i, 1).toString();
+			
+			if(key.equals("TESTS"))
+				device.put(key, new JSONArray());
+			else
+				device.put(key, value);
+			
+			key = "";
+			value = "";
+		}
+		
+		jObj.put(newDeviceName, device);
+		
+		try {
+			AutomationCommons.saveJSONObjectToFile(jObj, ControlPanel.path);
+			jObj = AutomationCommons.getJSONObject(ControlPanel.path);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//cmbBoxChanged();
 	}
 	
 	private void cmbBoxChanged()
@@ -186,5 +235,4 @@ public class DeviceCreateEditView extends JFrame {
 		table.editCellAt(row, column);
 		//table.setValueAt("", row, column);
 		}
-	
 }

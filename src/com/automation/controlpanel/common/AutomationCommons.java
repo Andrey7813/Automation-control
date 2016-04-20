@@ -168,6 +168,8 @@ public class AutomationCommons {
 			pairs.put("ScreenShotsPath", 			(String)device.get("ScreenShotsPath"));
 			pairs.put("BackupPath", 			    (String)device.get("BackupPath"));
 			pairs.put("SaveStatistics", 			(String)device.get("SaveStatistics"));
+			pairs.put("StartDelayInMinutes", 		(String)device.get("StartDelayInMinutes"));
+			pairs.put("TestsCodePath",      		(String)device.get("TestsCodePath"));
 					
 
 		return pairs;
